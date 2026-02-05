@@ -5,11 +5,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import net.javaguides.sms.entity.Student;
+import net.javaguides.sms.exception.ResourceNotFoundException;
 import net.javaguides.sms.repository.StudentRepository;
 import net.javaguides.sms.service.StudentService;
 
 @Service
-public class StudentServiceImpl implements StudentService{
+public class StudentServiceImpl implements StudentService {
 
 	private StudentRepository studentRepository;
 	
@@ -30,7 +31,8 @@ public class StudentServiceImpl implements StudentService{
 
 	@Override
 	public Student getStudentById(Long id) {
-		return studentRepository.findById(id).get();
+		return studentRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
 	}
 
 	@Override
@@ -40,7 +42,9 @@ public class StudentServiceImpl implements StudentService{
 
 	@Override
 	public void deleteStudentById(Long id) {
-		studentRepository.deleteById(id);	
+		// Check if student exists before deleting
+		studentRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Student not found with id: " + id));
+		studentRepository.deleteById(id);
 	}
-
 }

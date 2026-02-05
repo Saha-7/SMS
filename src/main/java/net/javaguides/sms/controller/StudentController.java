@@ -2,11 +2,13 @@ package net.javaguides.sms.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import jakarta.validation.Valid;
 import net.javaguides.sms.entity.Student;
 import net.javaguides.sms.service.StudentService;
 
@@ -29,16 +31,17 @@ public class StudentController {
 	
 	@GetMapping("/students/new")
 	public String createStudentForm(Model model) {
-		
 		// create student object to hold student form data
 		Student student = new Student();
 		model.addAttribute("student", student);
 		return "create_student";
-		
 	}
 	
 	@PostMapping("/students")
-	public String saveStudent(@ModelAttribute("student") Student student) {
+	public String saveStudent(@Valid @ModelAttribute("student") Student student, BindingResult result, Model model) {
+		if (result.hasErrors()) {
+			return "create_student";
+		}
 		studentService.saveStudent(student);
 		return "redirect:/students";
 	}
@@ -51,8 +54,14 @@ public class StudentController {
 
 	@PostMapping("/students/{id}")
 	public String updateStudent(@PathVariable Long id,
-			@ModelAttribute("student") Student student,
+			@Valid @ModelAttribute("student") Student student,
+			BindingResult result,
 			Model model) {
+		
+		if (result.hasErrors()) {
+			student.setId(id);
+			return "edit_student";
+		}
 		
 		// get student from database by id
 		Student existingStudent = studentService.getStudentById(id);
@@ -67,11 +76,9 @@ public class StudentController {
 	}
 	
 	// handler method to handle delete student request
-	
 	@GetMapping("/students/{id}")
 	public String deleteStudent(@PathVariable Long id) {
 		studentService.deleteStudentById(id);
 		return "redirect:/students";
 	}
-	
 }
